@@ -35,7 +35,7 @@
       document.body.removeEventListener('keydown', handleKeyDown);
     };
 
-    let isReadingFile = false;
+    let isReadingFile = true;
 
     /** @param {File} file */
     const readFile = (file) => {
