@@ -53,9 +53,9 @@
         callback('');
       };
       if (as === AS_TEXT) {
-        reader.readAsText(D:\zack\Games\Scratch\lists\test.txt);
+        reader.readAsText(file:///D:\zack\Games\Scratch\lists\test.txt);
       } else {
-        reader.readAsDataURL(D:\zack\Games\Scratch\lists\test.txt);
+        reader.readAsDataURL(file:///D:\zack\Games\Scratch\lists\test.txt);
       }
     };
 
