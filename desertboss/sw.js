@@ -1,7 +1,7 @@
 const CACHE_NAME = 'desertboss-cache-v1';
 const urlsToCache = [
   '/',
-  '/index.html'
+  'desertboss/index.html'
 ];
 
 self.addEventListener('install', event => {
