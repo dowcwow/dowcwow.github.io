@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.dowcwow.desertboss",
+      "sha256_cert_fingerprints": [
+        "8A:B0:48:EC:8D:67:1C:64:F9:15:4F:12:FF:87:58:2A:67:B2:37:68:AE:AE:E8:7B:A4:24:8C:09:F7:9B:13:EE"
+      ]
+    }
+  }
+]
