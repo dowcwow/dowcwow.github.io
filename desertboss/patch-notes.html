@@ -12,13 +12,14 @@
 
     body {
       background: #e7e5df;
-      color: #cec2b5;
+      color: #e7e5df;
       font-family: 'Upheaval', sans-serif;
       display: flex;
       justify-content: center;
       padding: 2rem;
       letter-spacing: 1px;
       font-size: 1.2rem;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
 
     .patch-notes {
@@ -31,6 +32,12 @@
       box-shadow: none;
     }
 
+    .patch-notes h1,
+    .patch-notes h2,
+    .patch-notes li {
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    }
+
     .patch-notes h1 {
       font-size: 3rem;
       margin-bottom: 1rem;
@@ -41,7 +48,7 @@
     .patch-notes h2 {
       margin-top: 1.5rem;
       font-size: 2.2rem;
-      color: #cec2b5;
+      color: #e7e5df;
     }
 
     .patch-notes ul {
@@ -60,14 +67,16 @@
 
     <h2>New features and QOL improvements</h2>
     <ul>
-      <li>New platofrm type: disappearing platforms! This adds some challenge to the platforming when you get to a higher score.</li>
+      <li>New platform type: disappearing platforms! This adds some challenge to the platforming when you get to a higher score.</li>
       <li>Upgrade spawns are now guaranteed after certain scores. This helps reduce uncertainty and relying on RNG to get better.</li>
       <li>You now spawn with 3 hearts instead of 2.</li>
     </ul>
-    
+
     <h1>Version 1.0.0</h1>
 
     <h2>Official Release!</h2>
+    <ul>
+      <li>Initial launch of the game with core features.</li>
     </ul>
   </div>
 </body>
