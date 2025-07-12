@@ -1,2 +1,89 @@
-1.0.0:
-- Official release
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Patch Notes</title>
+  <style>
+    @font-face {
+      font-family: 'Upheaval';
+      src: url('fonts/upheavtt.ttf') format('truetype');
+    }
+
+    body {
+      background: #0d0d0d;
+      color: #f0f0f0;
+      font-family: 'Upheaval', sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .patch-notes {
+      max-width: 800px;
+      width: 100%;
+      background: #1a1a1a;
+      border: 2px solid #444;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .patch-notes h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #444;
+      padding-bottom: 0.5rem;
+    }
+
+    .patch-notes h2 {
+      margin-top: 1.5rem;
+      font-size: 1.8rem;
+      color: #ddd;
+    }
+
+    .patch-notes ul {
+      margin: 0.5rem 0 0 1.5rem;
+      list-style-type: square;
+    }
+
+    .patch-notes li {
+      margin: 0.3rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="patch-notes">
+    <h1>PVersion 1.1.0</h1>
+
+    <h2>New features and QOL improvements</h2>
+    <ul>
+      <li>New platofrm type: disappearing platforms! This adds some challenge to the platforming when you get to a higher score.</li>
+      <li>Upgrade spawns are now guaranteed after certain scores. This helps reduce uncertainty and relying on RNG to get better.</li>
+      <li>You now spawn with 3 hearts instead of 2.</li>
+    </ul>
+    
+    <h1>PVersion 1.0.0</h1>
+
+    <h2>Official Release!</h2>
+    <ul>
+      <li>Added new playable character: The Shadow Knight</li>
+      <li>New map: Crystal Caverns</li>
+      <li>Leaderboards for daily challenges</li>
+    </ul>
+
+    <h2>Improvements</h2>
+    <ul>
+      <li>Improved AI pathfinding for enemies</li>
+      <li>Optimized loading times by 25%</li>
+    </ul>
+
+    <h2>Bug Fixes</h2>
+    <ul>
+      <li>Fixed crash when loading saved games on low-end devices</li>
+      <li>Resolved texture flickering on some GPUs</li>
+      <li>Minor UI fixes</li>
+    </ul>
+  </div>
+</body>
+</html>
