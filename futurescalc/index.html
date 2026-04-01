@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Risk Calculator</title>
+
+<style>
+@font-face {
+    font-family: 'CustomFont';
+    src: url('./FOT-RodinHimawari Pro UB.otf') format('opentype');
+}
+
+body {
+    margin: 0;
+    background: #121212;
+    font-family: 'CustomFont', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.app {
+    width: 50vw;
+    min-width: 400px;
+    max-width: 900px;
+    background: #1c1c1c;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: clamp(18px, 2vw, 32px);
+    color: #bbb;
+}
+
+input {
+    font-family: inherit;
+    font-size: inherit;
+    background: #2a2a2a;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: white;
+    width: 160px;
+    text-align: right;
+}
+
+.symbol-wrapper {
+    position: relative;
+}
+
+.symbol-input {
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    background: #2a2a2a;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    z-index: 10;
+}
+
+.dropdown div {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown div:hover {
+    background: #3a3a3a;
+}
+
+input:focus {
+    outline: 2px solid #7CFF9B;
+}
+
+.divider {
+    height: 1px;
+    background: #333;
+    margin: 10px 0;
+}
+
+.green {
+    color: #7CFF9B;
+    font-weight: bold;
+}
+
+.result {
+    font-size: clamp(20px, 2.2vw, 36px);
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="row">Max risk: $<input id="maxRisk" value="400"></div>
+
+<div class="row">
+Symbol:
+<div class="symbol-wrapper">
+<input id="symbolSearch" class="symbol-input" autocomplete="off">
+<div id="dropdown" class="dropdown"></div>
+</div>
+</div>
+
+<div class="row">Points risked: <input id="pointsRisk" value="50"></div>
+<div class="row">Points target: <input id="pointsTarget" value="75"></div>
+<div class="row">Risk-reward: <input id="rr" value="1.5"></div>
+
+<div class="divider"></div>
+
+<div class="row result green">Max contracts: <span id="contracts">4</span></div>
+<div class="row result green">Amt risked: $<span id="amtRisked">400</span></div>
+<div class="row result green">Max gains: $<span id="maxGains">600</span></div>
+
+</div>
+
+<script>
+const pointValues = {
+    MNQ: 2,
+    MES: 5,
+    NQ: 20,
+    ES: 50
+};
+
+const symbols = Object.keys(pointValues);
+
+let updating = false;
+
+function calculateFromPoints() {
+    if (updating) return;
+    updating = true;
+    let risk = parseFloat(pointsRisk.value) || 0;
+    let target = parseFloat(pointsTarget.value) || 0;
+    if (risk > 0) rr.value = (target / risk).toFixed(2);
+    calculateBottom();
+    updating = false;
+}
+
+function calculateFromRR() {
+    if (updating) return;
+    updating = true;
+    let risk = parseFloat(pointsRisk.value) || 0;
+    let rrVal = parseFloat(rr.value) || 0;
+    if (risk > 0) pointsTarget.value = (risk * rrVal).toFixed(2);
+    calculateBottom();
+    updating = false;
+}
+
+function calculateBottom() {
+    let maxRiskVal = parseFloat(maxRisk.value) || 0;
+    let riskPts = parseFloat(pointsRisk.value) || 0;
+    let targetPts = parseFloat(pointsTarget.value) || 0;
+    let symbolVal = symbolSearch.value.toUpperCase();
+
+    // if invalid symbol → zero everything
+    if (!(symbolVal in pointValues)) {
+        contractsEl.textContent = 0;
+        amtRisked.textContent = 0;
+        maxGains.textContent = 0;
+        return;
+    }
+
+    let pointValue = pointValues[symbolVal];
+
+    let riskPerContract = riskPts * pointValue;
+
+    let contracts = riskPerContract > 0 ? Math.floor(maxRiskVal / riskPerContract) : 0;
+
+    let totalRisk = contracts * riskPerContract;
+    let gains = contracts * targetPts * pointValue;
+
+    contractsEl.textContent = contracts;
+    amtRisked.textContent = totalRisk.toFixed(0);
+    maxGains.textContent = gains.toFixed(0);
+}
+
+// elements
+const maxRisk = document.getElementById("maxRisk");
+const pointsRisk = document.getElementById("pointsRisk");
+const pointsTarget = document.getElementById("pointsTarget");
+const rr = document.getElementById("rr");
+const symbolSearch = document.getElementById("symbolSearch");
+const dropdown = document.getElementById("dropdown");
+const contractsEl = document.getElementById("contracts");
+const amtRisked = document.getElementById("amtRisked");
+const maxGains = document.getElementById("maxGains");
+
+// ===== DROPDOWN =====
+function renderDropdown(filter = "") {
+  dropdown.innerHTML = "";
+  const filtered = symbols.filter(s => s.startsWith(filter.toUpperCase()));
+  filtered.forEach(sym => {
+    const div = document.createElement("div");
+    div.textContent = sym;
+    div.onclick = () => {
+      symbolSearch.value = sym;
+      dropdown.style.display = "none";
+      calculateBottom();
+    };
+    dropdown.appendChild(div);
+  });
+}
+
+symbolSearch.addEventListener("focus", () => {
+  renderDropdown(symbolSearch.value);
+  dropdown.style.display = "block";
+});
+
+symbolSearch.addEventListener("input", () => {
+  renderDropdown(symbolSearch.value);
+});
+
+// close dropdown when clicking outside
+window.addEventListener("click", (e) => {
+  if (!e.target.closest(".symbol-wrapper")) {
+    dropdown.style.display = "none";
+  }
+});
+
+// ===== NUMERIC INPUT ONLY =====
+[pointsRisk, pointsTarget, rr, maxRisk].forEach(el => {
+  el.addEventListener('input', () => {
+    el.value = el.value.replace(/[^0-9.]/g, '');
+    if ((el.value.match(/\./g) || []).length > 1) {
+      el.value = el.value.substring(0, el.value.lastIndexOf('.'));
+    }
+  });
+});
+
+// ===== NAVIGATION =====
+const focusable = Array.from(document.querySelectorAll("input"));
+
+function getFirstMatchSymbol(val) {
+  return symbols.find(s => s.startsWith(val.toUpperCase())) || symbols[0];
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Tab" && e.key !== "Enter") return;
+
+  const currentIndex = focusable.indexOf(document.activeElement);
+
+  if (e.shiftKey) {
+    e.preventDefault();
+    const prev = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
+    focusable[prev].focus();
+  } else {
+    e.preventDefault();
+
+    if (document.activeElement === symbolSearch) {
+      symbolSearch.value = getFirstMatchSymbol(symbolSearch.value);
+      dropdown.style.display = "none";
+      calculateBottom();
+    }
+
+    const next = currentIndex === focusable.length - 1 ? 0 : currentIndex + 1;
+    focusable[next].focus();
+  }
+});
+
+// auto select
+focusable.forEach(el => {
+  el.addEventListener("focus", () => el.select());
+});
+
+// ===== SAVE / LOAD =====
+const fields = { maxRisk, pointsRisk, pointsTarget, rr, symbolSearch };
+
+window.addEventListener("load", () => {
+  Object.keys(fields).forEach(key => {
+    const val = localStorage.getItem(key);
+    if (val !== null) fields[key].value = val;
+  });
+  calculateBottom();
+});
+
+Object.keys(fields).forEach(key => {
+  fields[key].addEventListener("input", () => {
+    localStorage.setItem(key, fields[key].value);
+  });
+});
+
+calculateBottom();
+
+</script>
+
+</body>
+</html>
