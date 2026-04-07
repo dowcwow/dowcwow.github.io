@@ -54,27 +54,17 @@ input {
     text-align: right;
 }
 
-.symbol-wrapper {
-    position: relative;
-}
-
 .symbol-input {
     text-align: left;
-    cursor: pointer;
 }
 
 .dropdown {
     position: absolute;
-    top: 110%;
-    left: 0;
-    width: 100%;
     background: #2a2a2a;
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    max-height: 200px;
-    overflow-y: auto;
     display: none;
-    z-index: 10;
+    width: 160px;
 }
 
 .dropdown div {
@@ -90,215 +80,169 @@ input:focus {
     outline: 2px solid #7CFF9B;
 }
 
-.divider {
-    height: 1px;
-    background: #333;
-    margin: 10px 0;
-}
-
 .green {
     color: #7CFF9B;
     font-weight: bold;
 }
-
-.result {
-    font-size: clamp(20px, 2.2vw, 36px);
-}
 </style>
 </head>
-
 <body>
 
 <div class="app">
 
 <div class="row">Max risk: $<input id="maxRisk" value="400"></div>
 
-<div class="row">
-Symbol:
-<div class="symbol-wrapper">
-<input id="symbolSearch" class="symbol-input" autocomplete="off">
+<div class="row">Symbol:
+<div style="position:relative">
+<input id="symbol" class="symbol-input">
 <div id="dropdown" class="dropdown"></div>
 </div>
 </div>
 
-<div class="row">Points risked: <input id="pointsRisk" value="50"></div>
-<div class="row">Points target: <input id="pointsTarget" value="75"></div>
+<div class="row">Points risked: <input id="risk" value="50"></div>
+<div class="row">Points target: <input id="target" value="75"></div>
 <div class="row">Risk-reward: <input id="rr" value="1.5"></div>
 
-<div class="divider"></div>
-
-<div class="row result green">Max contracts: <span id="contracts">4</span></div>
-<div class="row result green">Amt risked: $<span id="amtRisked">400</span></div>
-<div class="row result green">Max gains: $<span id="maxGains">600</span></div>
+<div class="row green">Contracts: <span id="contracts">0</span></div>
+<div class="row green">Risk: $<span id="riskAmt">0</span></div>
+<div class="row green">Gain: $<span id="gain">0</span></div>
 
 </div>
 
 <script>
-const pointValues = {
-    MNQ: 2,
-    MES: 5,
-    NQ: 20,
-    ES: 50
-};
+const values = { MNQ:2, MES:5, NQ:20, ES:50 };
+const symbols = Object.keys(values);
 
-const symbols = Object.keys(pointValues);
+const maxRisk = document.getElementById('maxRisk');
+const risk = document.getElementById('risk');
+const target = document.getElementById('target');
+const rr = document.getElementById('rr');
+const symbol = document.getElementById('symbol');
+const dropdown = document.getElementById('dropdown');
 
-let updating = false;
+const contractsEl = document.getElementById('contracts');
+const riskAmt = document.getElementById('riskAmt');
+const gain = document.getElementById('gain');
 
-function calculateFromPoints() {
-    if (updating) return;
-    updating = true;
-    let risk = parseFloat(pointsRisk.value) || 0;
-    let target = parseFloat(pointsTarget.value) || 0;
-    if (risk > 0) rr.value = (target / risk).toFixed(2);
-    calculateBottom();
-    updating = false;
+// ===== CALC =====
+function calc(){
+  const sym = symbol.value.toUpperCase();
+  if(!values[sym]){
+    contractsEl.textContent=0;
+    riskAmt.textContent=0;
+    gain.textContent=0;
+    return;
+  }
+
+  const ptVal = values[sym];
+  const r = parseFloat(risk.value)||0;
+  const t = parseFloat(target.value)||0;
+  const max = parseFloat(maxRisk.value)||0;
+
+  if(r>0) rr.value = (t/r).toFixed(2);
+
+  const per = r*ptVal;
+  const contracts = per>0?Math.floor(max/per):0;
+
+  contractsEl.textContent=contracts;
+  riskAmt.textContent=(contracts*per).toFixed(0);
+  gain.textContent=(contracts*t*ptVal).toFixed(0);
 }
 
-function calculateFromRR() {
-    if (updating) return;
-    updating = true;
-    let risk = parseFloat(pointsRisk.value) || 0;
-    let rrVal = parseFloat(rr.value) || 0;
-    if (risk > 0) pointsTarget.value = (risk * rrVal).toFixed(2);
-    calculateBottom();
-    updating = false;
-}
-
-function calculateBottom() {
-    let maxRiskVal = parseFloat(maxRisk.value) || 0;
-    let riskPts = parseFloat(pointsRisk.value) || 0;
-    let targetPts = parseFloat(pointsTarget.value) || 0;
-    let symbolVal = symbolSearch.value.toUpperCase();
-
-    // if invalid symbol → zero everything
-    if (!(symbolVal in pointValues)) {
-        contractsEl.textContent = 0;
-        amtRisked.textContent = 0;
-        maxGains.textContent = 0;
-        return;
+// ===== INPUT FILTER =====
+[maxRisk,risk,target,rr].forEach(el=>{
+  el.addEventListener('input',()=>{
+    el.value = el.value.replace(/[^0-9.]/g,'');
+    if((el.value.match(/\./g)||[]).length>1){
+      el.value=el.value.slice(0,-1);
     }
-
-    let pointValue = pointValues[symbolVal];
-
-    let riskPerContract = riskPts * pointValue;
-
-    let contracts = riskPerContract > 0 ? Math.floor(maxRiskVal / riskPerContract) : 0;
-
-    let totalRisk = contracts * riskPerContract;
-    let gains = contracts * targetPts * pointValue;
-
-    contractsEl.textContent = contracts;
-    amtRisked.textContent = totalRisk.toFixed(0);
-    maxGains.textContent = gains.toFixed(0);
-}
-
-// elements
-const maxRisk = document.getElementById("maxRisk");
-const pointsRisk = document.getElementById("pointsRisk");
-const pointsTarget = document.getElementById("pointsTarget");
-const rr = document.getElementById("rr");
-const symbolSearch = document.getElementById("symbolSearch");
-const dropdown = document.getElementById("dropdown");
-const contractsEl = document.getElementById("contracts");
-const amtRisked = document.getElementById("amtRisked");
-const maxGains = document.getElementById("maxGains");
+  });
+});
 
 // ===== DROPDOWN =====
-function renderDropdown(filter = "") {
-  dropdown.innerHTML = "";
-  const filtered = symbols.filter(s => s.startsWith(filter.toUpperCase()));
-  filtered.forEach(sym => {
-    const div = document.createElement("div");
-    div.textContent = sym;
-    div.onclick = () => {
-      symbolSearch.value = sym;
-      dropdown.style.display = "none";
-      calculateBottom();
-    };
-    dropdown.appendChild(div);
+symbol.addEventListener('focus',()=>{
+  dropdown.innerHTML='';
+  symbols.forEach(s=>{
+    const d=document.createElement('div');
+    d.textContent=s;
+    d.onclick=()=>{symbol.value=s;save();calc();dropdown.style.display='none';};
+    dropdown.appendChild(d);
   });
-}
-
-symbolSearch.addEventListener("focus", () => {
-  renderDropdown(symbolSearch.value);
-  dropdown.style.display = "block";
+  dropdown.style.display='block';
 });
 
-symbolSearch.addEventListener("input", () => {
-  renderDropdown(symbolSearch.value);
+symbol.addEventListener('input',()=>{
+  dropdown.innerHTML='';
+  symbols.filter(s=>s.startsWith(symbol.value.toUpperCase()))
+  .forEach(s=>{
+    const d=document.createElement('div');
+    d.textContent=s;
+    d.onclick=()=>{symbol.value=s;save();calc();dropdown.style.display='none';};
+    dropdown.appendChild(d);
+  });
 });
 
-// close dropdown when clicking outside
-window.addEventListener("click", (e) => {
-  if (!e.target.closest(".symbol-wrapper")) {
-    dropdown.style.display = "none";
+window.addEventListener('click', e => {
+  if (!e.target.closest('#symbol') && !e.target.closest('#dropdown')) {
+    dropdown.style.display = 'none';
   }
 });
 
-// ===== NUMERIC INPUT ONLY =====
-[pointsRisk, pointsTarget, rr, maxRisk].forEach(el => {
-  el.addEventListener('input', () => {
-    el.value = el.value.replace(/[^0-9.]/g, '');
-    if ((el.value.match(/\./g) || []).length > 1) {
-      el.value = el.value.substring(0, el.value.lastIndexOf('.'));
-    }
-  });
+// also hide on blur (small delay so click can register)
+symbol.addEventListener('blur', () => {
+  setTimeout(() => {
+    dropdown.style.display = 'none';
+  }, 100);
 });
 
-// ===== NAVIGATION =====
-const focusable = Array.from(document.querySelectorAll("input"));
+// ===== NAV =====
+const inputs=[maxRisk,symbol,risk,target,rr];
 
-function getFirstMatchSymbol(val) {
-  return symbols.find(s => s.startsWith(val.toUpperCase())) || symbols[0];
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Tab'&&e.key!=='Enter')return;
+  e.preventDefault();
+
+  const i=inputs.indexOf(document.activeElement);
+
+  if(document.activeElement===symbol){
+    const match=symbols.find(s=>s.startsWith(symbol.value.toUpperCase()))||symbols[0];
+    symbol.value=match;
+    save();
+  }
+
+  const next=e.shiftKey?(i-1+inputs.length)%inputs.length:(i+1)%inputs.length;
+  inputs[next].focus();
+});
+
+inputs.forEach(i=>i.addEventListener('focus',()=>i.select?.()));
+
+// ===== SAVE =====
+function save(){
+  localStorage.setItem('data',JSON.stringify({
+    maxRisk:maxRisk.value,
+    symbol:symbol.value,
+    risk:risk.value,
+    target:target.value,
+    rr:rr.value
+  }));
 }
 
-document.addEventListener("keydown", (e) => {
-  if (e.key !== "Tab" && e.key !== "Enter") return;
+function load(){
+  const d=JSON.parse(localStorage.getItem('data')||'{}');
+  if(d.maxRisk) maxRisk.value=d.maxRisk;
+  if(d.symbol) symbol.value=d.symbol;
+  if(d.risk) risk.value=d.risk;
+  if(d.target) target.value=d.target;
+  if(d.rr) rr.value=d.rr;
+}
 
-  const currentIndex = focusable.indexOf(document.activeElement);
-
-  if (e.shiftKey) {
-    e.preventDefault();
-    const prev = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
-    focusable[prev].focus();
-  } else {
-    e.preventDefault();
-
-    if (document.activeElement === symbolSearch) {
-      symbolSearch.value = getFirstMatchSymbol(symbolSearch.value);
-      dropdown.style.display = "none";
-      calculateBottom();
-    }
-
-    const next = currentIndex === focusable.length - 1 ? 0 : currentIndex + 1;
-    focusable[next].focus();
-  }
+// ===== EVENTS =====
+document.querySelectorAll('input').forEach(i=>{
+  i.addEventListener('input',()=>{save();calc();});
 });
 
-// auto select
-focusable.forEach(el => {
-  el.addEventListener("focus", () => el.select());
-});
-
-// ===== SAVE / LOAD =====
-const fields = { maxRisk, pointsRisk, pointsTarget, rr, symbolSearch };
-
-window.addEventListener("load", () => {
-  Object.keys(fields).forEach(key => {
-    const val = localStorage.getItem(key);
-    if (val !== null) fields[key].value = val;
-  });
-  calculateBottom();
-});
-
-Object.keys(fields).forEach(key => {
-  fields[key].addEventListener("input", () => {
-    localStorage.setItem(key, fields[key].value);
-  });
-});
-
-calculateBottom();
+load();
+calc();
 
 </script>
 
